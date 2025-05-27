@@ -1,16 +1,19 @@
 from typing import Dict
 import pandas as pd
-import numpy as np
 
+from recommender.data.features import build_item_content_matrix
 from recommender.data.preprocess import MFPreprocessor, leave_one_out_split, sample_negatives
-from recommender.engine.metrics import align_content_matrix
-from recommender.utils import logger
+from recommender.engine.metrics import align_content_matrix, evaluate_topk_hybrid
+from recommender.engine.trainer import train_neumf_hybrid
+from recommender.utils.logger import  setup_logger
+
+logger = setup_logger(__name__)
 
 def run_pipeline_neumf(
     ratings_df: pd.DataFrame,
     books_df: pd.DataFrame,
-    book_tags_df: pd.DataFrame,
-    tags_df: pd.DataFrame,
+    # book_tags_df: pd.DataFrame,
+    # tags_df: pd.DataFrame,
     generalized_tags: pd.DataFrame,
     *,
     min_ratings: int = 5,
@@ -19,7 +22,6 @@ def run_pipeline_neumf(
     eval_K: int = 10,
     eval_n_neg: int = 99,
     seed: int = 42,
-    **trainer_kwargs,
 ) -> Dict[str, Dict[str, float]]:
     """
     Full pipeline following the MFPreprocessor interface:
@@ -59,12 +61,11 @@ def run_pipeline_neumf(
     content_df = build_item_content_matrix(
         generalized_tags=generalized_tags,
         books_df=books_df,
-        book_tags_df=book_tags_df,
-        tags_df=tags_df,
+        # book_tags_df=book_tags_df,
+        # tags_df=tags_df,
     )
     content_matrix = align_content_matrix(content_df, prep.item_encoder)
 
-    # --- 3. Train model ---------------------------------------------------
     model = train_neumf_hybrid(
         train_df=train_df,
         num_users=num_users,

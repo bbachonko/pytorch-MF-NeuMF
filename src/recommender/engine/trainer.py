@@ -5,10 +5,12 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 
-from recommender.utils import logger
+from recommender.utils.logger import setup_logger
 from recommender.engine.losses import bpr_loss
 from recommender.models.mf import MatrixFactorization
 from recommender.models.neumf import NeuMFHybrid
+
+logger = setup_logger(__name__)
 
 
 def train_mf(

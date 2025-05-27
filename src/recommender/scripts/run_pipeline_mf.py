@@ -1,9 +1,17 @@
 import pandas as pd
 
-from recommender.utils import logger
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+
+from recommender.utils.logger import setup_logger
 from recommender.data.preprocess import MFPreprocessor, leave_one_out_split, sample_negatives
 from recommender.engine.metrics import evaluate_topk
 from recommender.engine.trainer import train_mf
+
+
+logger = setup_logger(__name__)
 
 
 def run_pipeline(
