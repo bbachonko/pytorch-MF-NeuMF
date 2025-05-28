@@ -1,3 +1,4 @@
+"""Module containing Matrix Factorization (MF) pytorch model definition."""
 import torch
 import torch.nn as nn
 
@@ -17,14 +18,34 @@ class MatrixFactorization(nn.Module):
         bias_user (nn.Embedding): Bias term per user.
         bias_item (nn.Embedding): Bias term per item.
     """
-    def __init__(self, num_users: int, num_items: int, embedding_dim: int = 32):
+    def __init__(self, num_users: int, num_items: int, embedding_dim: int = 32) -> None:
         super().__init__()
         self.user_emb = nn.Embedding(num_users, embedding_dim)
         self.item_emb = nn.Embedding(num_items, embedding_dim)
+
+        # Bias layers which may capture additonal global tendencies 
+        # like users who consistently give higher or lower ratings 
         self.user_bias = nn.Embedding(num_users, 1)
         self.item_bias = nn.Embedding(num_items, 1)
 
     def forward(self, users: torch.Tensor, items: torch.Tensor) -> torch.Tensor:
-        dot = (self.user_emb(users) * self.item_emb(items)).sum(1)
-        bias = self.user_bias(users).squeeze() + self.item_bias(items).squeeze()
+        """Defines actual layers ensembling and creates factorized matrix."""
+        dot = (self.user_emb(users) * self.item_emb(items)).sum(1)  # User - Item intercations 
+        bias = (
+            self.user_bias(users).squeeze() +
+            self.item_bias(items).squeeze()
+        )  # User & Items biases
         return dot + bias
+
+
+if __name__ == "__main__":
+    model = MatrixFactorization(num_users=100, num_items=200, embedding_dim=32)
+
+    def count_parameters(model):
+        total = sum(p.numel() for p in model.parameters() if p.requires_grad)
+        print(f"Total trainable parameters: {total}")
+        for name, param in model.named_parameters():
+            print(f"{name}: {param.shape} → {param.numel()} parameters")
+
+    print(model)
+    count_parameters(model)

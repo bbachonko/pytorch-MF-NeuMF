@@ -11,6 +11,7 @@ from tqdm.auto import tqdm
 from recommender.utils import logger
 from recommender.models.mf import MatrixFactorization
 
+
 def _rank_metrics(rank: int, K: int) -> tuple[int, float, float]:
     """Return (hit, ndcg, mrr) for a single user given *rank* of the positive."""
     hit = 1 if rank < K else 0  # higher when more relevant items appers in top K reccs.
@@ -50,8 +51,8 @@ def evaluate_topk(
     )
 
     with torch.no_grad():
-        for (_, user, pos_item) in tqdm(
-            test_df_pos.itertuples(name=None, index=False),
+        for user, pos_item in tqdm(
+            test_df_pos[["user", "item"]].itertuples(index=False, name=None),
             total=len(test_df_pos),
             desc="Evaluating",
             unit="user",
@@ -88,29 +89,6 @@ def evaluate_topk(
     }
 
 
-# -*- coding: utf-8 -*-
-"""
-Minimal, self‑contained replacements for the buggy notebook cells so that
-**NeuMFHybrid** really *consumes* content‑based features. Paste each section into
-its respective Jupyter cell or keep this file as a module and `import` it.
-
-Key fixes
----------
-1.   Accept a **DataFrame** in `build_item_content_matrix` and keep indexes
-     aligned on `book_id`.
-2.   Add `align_content_matrix` – guarantees row order == `item_encoder` order.
-3.   Import `torch.nn.functional as F` (needed for `ReLU`).
-4.   Re‑write `NeuMFDataset` so every sample returns the right `content_vec`.
-5.   Re‑write `train_neumf_hybrid` – the model now receives `content_vec`
-     for **both** positive & negative items, and `content_dim` is no longer hard‑coded.
-6.   Provide an `evaluate_topk_hybrid` helper mirroring the MF version.
-
-All code uses **static typing**, clear English comments, and follows PEP 8 /
-PyTorch best‑practice (no one‑off `.cpu()` jumps, deterministic seeding, etc.).
-"""
-
-
-
 def align_content_matrix(content_df: pd.DataFrame, item_encoder: LabelEncoder) -> np.ndarray:
     """Re‑order rows so that *row i* corresponds to *item i* in the model.
 
@@ -122,35 +100,6 @@ def align_content_matrix(content_df: pd.DataFrame, item_encoder: LabelEncoder) -
     return aligned.values.astype(np.float32)
 
 
-# ---------------------------------------------------------------------------
-# 2.  Dataset feeding content vectors
-# ---------------------------------------------------------------------------
-
-class NeuMFDataset(Dataset):
-    """Binary implicit‑feedback dataset that also yields *item content vectors*."""
-
-    def __init__(self, interactions: pd.DataFrame, content_matrix: np.ndarray):
-        self.users: torch.LongTensor = torch.as_tensor(interactions.user.values, dtype=torch.long)
-        self.items: torch.LongTensor = torch.as_tensor(interactions.item.values, dtype=torch.long)
-        self.labels: torch.FloatTensor = torch.as_tensor(interactions.label.values, dtype=torch.float32)
-        # Whole matrix as a (n_items × content_dim) tensor for fast indexing
-        self._content: torch.FloatTensor = torch.from_numpy(content_matrix)
-
-    # ------------------------------------------------------------------
-    def __len__(self) -> int:  # noqa: D401 – short *imperative* form
-        return len(self.labels)
-
-    # ------------------------------------------------------------------
-    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-        item_id = int(self.items[idx])
-        return (
-            self.users[idx],                     # user index
-            self.items[idx],                     # item index
-            self._content[item_id],              # content vector (no copy!)
-            self.labels[idx],
-        )
-
-
 def evaluate_topk_hybrid(
     model: NeuMFHybrid,
     test_df_pos: "pd.DataFrame",
@@ -160,19 +109,13 @@ def evaluate_topk_hybrid(
     *,
     k: int = 10,
     n_neg: int = 99,
-    batch_users: int = 1024,          # ← NEW: how many users to evaluate at once
+    batch_users: int = 1024,
     seed: int = 42,
     device: str | torch.device = "cuda" if torch.cuda.is_available() else "cpu",
 ) -> dict[str, float]:
     """
     Vectorised HR/nDCG/MRR evaluation that is **O(#users + #items) GPU passes**
     instead of O(#users).
-
-    ── What changed ──────────────────────────────────────────────────────────
-    • Users are collected in batches (`batch_users`).
-    • For each batch we build one long concatenated tensor of items, run a
-      single forward pass, then split the flat score vector with torch.split.
-    • No reshape tricks — we keep the true per-user lengths.
     """
     rng   = np.random.default_rng(seed)
     model = model.to(device).eval()
@@ -213,8 +156,8 @@ def evaluate_topk_hybrid(
         uid_batch.clear(); iid_batch.clear(); len_batch.clear()
 
     with torch.no_grad():
-        for (_, user, pos_item) in tqdm(
-            test_df_pos.itertuples(name=None, index=False),
+        for user, pos_item in tqdm(
+            test_df_pos[["user", "item"]].itertuples(index=False, name=None),
             total=len(test_df_pos),
             desc="Evaluating",
             unit="user",

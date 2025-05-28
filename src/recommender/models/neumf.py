@@ -74,7 +74,6 @@ class NeuMFHybrid(nn.Module):
         # single linear unit predicts a logit; we apply sigmoid in forward.
         self.out = nn.Linear(emb_dim + mlp_layers[-1], 1, bias=False)
 
-        # --- 5.  Optional weight init (same scheme as your notebook) --
         self._init_weights()
 
     # ------------------------------------------------------------------

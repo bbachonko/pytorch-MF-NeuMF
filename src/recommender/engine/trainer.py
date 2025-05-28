@@ -124,7 +124,6 @@ def train_neumf_hybrid(
     torch.manual_seed(seed)
     rng = np.random.default_rng(seed)
 
-    # --- model --------------------------------------------------------
     content_dim = content_matrix.shape[1]
     model = NeuMFHybrid(
         num_users,
@@ -132,7 +131,7 @@ def train_neumf_hybrid(
         content_dim,
         emb_dim=embedding_dim
     ).to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
 
     # --- positive ↔ negative triplets ---------------------------------
 
@@ -156,7 +155,6 @@ def train_neumf_hybrid(
     pos_t = torch.as_tensor([p for _, p, _ in triplets], dtype=torch.long, device=device)
     neg_t = torch.as_tensor([n for _, _, n in triplets], dtype=torch.long, device=device)
 
-    # --- training loop -----------------------------------------------
     for epoch in range(epochs):
         model.train()
         epoch_loss = 0.0
@@ -164,6 +162,7 @@ def train_neumf_hybrid(
         indices = rng.permutation(len(users_t))
         content_matrix_torch = torch.as_tensor(content_matrix, device=device)
         for start in range(0, len(indices), batch_size):
+            # Slicing current epoch specific batch
             batch_idx = indices[start : start + batch_size]
             u = users_t[batch_idx]
             i_pos = pos_t[batch_idx]

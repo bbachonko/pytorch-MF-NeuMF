@@ -71,6 +71,7 @@ def run_pipeline_neumf(
         num_users=num_users,
         num_items=num_items,
         content_matrix=content_matrix,
+        epochs=20,
         seed=seed,
     )
 
