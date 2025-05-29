@@ -34,8 +34,8 @@ if __name__ == "__main__":
         generalized_tags=generalized_tags,
         min_ratings= 5,
         threshold= 4,
-        negatives_per_pos=16,
-        eval_K=20,
-        eval_n_neg= 999,
+        negatives_per_pos=20,
+        eval_K=100,
+        eval_n_neg=999,
         seed=42,
     )

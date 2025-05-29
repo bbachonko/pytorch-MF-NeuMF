@@ -37,15 +37,3 @@ class MatrixFactorization(nn.Module):
         )  # User & Items biases
         return dot + bias
 
-
-if __name__ == "__main__":
-    model = MatrixFactorization(num_users=100, num_items=200, embedding_dim=32)
-
-    def count_parameters(model):
-        total = sum(p.numel() for p in model.parameters() if p.requires_grad)
-        print(f"Total trainable parameters: {total}")
-        for name, param in model.named_parameters():
-            print(f"{name}: {param.shape} → {param.numel()} parameters")
-
-    print(model)
-    count_parameters(model)

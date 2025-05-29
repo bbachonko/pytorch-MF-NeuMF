@@ -14,10 +14,10 @@ if __name__ == "__main__":
 
     model, results, _ = run_pipeline(
         ratings=ratings_df_sampled,
-        min_ratings= 5,
+        min_ratings=5,
         threshold= 4,
-        negatives_per_pos= 8,
-        eval_K= 10,
-        eval_n_neg= 999,
+        negatives_per_pos=10,
+        eval_K= 100,
+        eval_n_neg=999,
         seed=42,
     )

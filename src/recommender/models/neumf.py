@@ -137,4 +137,4 @@ class NeuMFHybrid(nn.Module):
         fusion = torch.cat([gmf_vec, mlp_out], dim=1)        # (B, emb_dim+mlp_last)
         logits = self.out(fusion).squeeze(-1)                # (B,)
 
-        return torch.sigmoid(logits)                         # p-lities
+        return logits                         # raw logits

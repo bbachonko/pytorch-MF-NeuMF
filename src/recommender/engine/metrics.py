@@ -102,8 +102,8 @@ def align_content_matrix(content_df: pd.DataFrame, item_encoder: LabelEncoder) -
 
 def evaluate_topk_hybrid(
     model: NeuMFHybrid,
-    test_df_pos: "pd.DataFrame",
-    train_df_pos: "pd.DataFrame",
+    test_df_pos: pd.DataFrame,
+    train_df_pos: pd.DataFrame,
     num_items: int,
     content_matrix: np.ndarray,
     *,
@@ -150,7 +150,10 @@ def evaluate_topk_hybrid(
             # rank = int(np.where(np.argsort(-row) == 0)[0])
             rank = int(np.where(np.argsort(-row) == 0)[0][0])
             hit, ndcg, mrr = _rank_metrics(rank, k)
-            hits.append(hit); ndcgs.append(ndcg); mrrs.append(mrr)
+
+            hits.append(hit)
+            ndcgs.append(ndcg)
+            mrrs.append(mrr)
 
         # clear buffers
         uid_batch.clear(); iid_batch.clear(); len_batch.clear()

@@ -110,7 +110,7 @@ def train_neumf_hybrid(
     content_matrix: np.ndarray,
     *,
     embedding_dim: int = 32,
-    epochs: int = 10,
+    epochs: int = 20,
     batch_size: int = 2048,
     lr: float = 5e-4,
     seed: int = 42,
